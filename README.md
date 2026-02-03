@@ -51,7 +51,7 @@ This design prevents:
 
 ---
 
-## 📁 Project Layout
+##  Project Layout
 
 ```
 Staj/
@@ -95,7 +95,7 @@ python -m Staj \
 
 ---
 
-## ⚙ Configuration
+##  Configuration
 
 All behavior is controlled via `config.json`
 
