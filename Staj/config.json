@@ -1,0 +1,41 @@
+{
+  "thresholds": {
+    "haziness": 40,
+    "contrast_min": 50,
+    "brightness_low": 100,
+    "brightness_high": 160,
+    "sharpness": 1500,
+    "saturation_min": 100,
+    "color_deviation": 0.08,
+    "auto_levels_contrast": 45,
+    "detail_sharpness_min": 300,
+    "detail_sharpness_max": 1500
+  },
+  "multipliers": {
+    "dehaze_strength_max": 0.85,
+    "dehaze_strength_min": 0.25,
+    "dehaze_divisor": 180,
+    "clahe_clip_max": 4.0,
+    "clahe_clip_min": 1.5,
+    "gamma_min": 0.5,
+    "gamma_max": 1.5,
+    "sharpen_strength_max": 2.5,
+    "sharpen_strength_min": 0.5,
+    "saturation_cap": 1.10,
+    "saturation_min_mult": 1.02
+  },
+  "processing": {
+    "chunk_size_small": 5,
+    "chunk_size_medium": 10,
+    "chunk_size_large": 20,
+    "files_per_subdir": 10000,
+    "max_workers": null,
+    "write_buffer_limit": 50,
+    "histogram_samples": 50
+  },
+  "adaptive_gamma": {
+    "dark_threshold": 0.4,
+    "bright_threshold": 0.6,
+    "transition_width": 0.2
+  }
+}
