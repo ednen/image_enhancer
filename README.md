@@ -74,7 +74,7 @@ All behavior is controlled via `config.json`:
 * logging level
 * pipeline steps
 
-## 🛠 Requirements
+##  Requirements
 
 See `requirements.txt`
 
