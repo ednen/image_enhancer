@@ -1,44 +1,70 @@
-# Image Enhancer Pipeline
+# Image Enhancer – Production Ready Pipeline
 
-High-performance, headless-ready image processing pipeline with GUI & CLI interfaces, designed for large-scale batch enhancement tasks.
+High-performance image enhancement pipeline designed for **large scale batch processing** with both **GUI and Headless CLI** interfaces.
 
-##  Features
+##  Core Capabilities
 
-* Headless Mode for server / automation usage
-* CLI & GUI interfaces from the same core
-* True parallel processing (CPU + I/O separation)
-* Modular, pluggable processing steps
-* Progress tracking & safe interruption
-* Config-driven behavior
-* Error-tolerant pipeline
+*  Separation of I/O and CPU workloads
+*  Multiprocessing with `ProcessPoolExecutor`
+*  Producer → Consumer → Writer pipeline
+*  Headless automation mode
+*  Shutdown safe
+*  Logging & error recovery
+*  Progress + ETA estimation
+*  Config-driven behavior
 
-##  Architecture
+---
 
-Layered pipeline architecture following separation of concerns:
+##  Real Architecture (from code)
 
-1. Reader (I/O bound)
-2. Processor (CPU bound)
-3. Writer (I/O bound)
+```
+[Reader Thread] → input_queue → [Process Pool]
+                               (CPU workers)
+                    → result_queue → [Writer Thread]
+```
 
-This design enables:
+### Components
 
-* Multiprocessing without UI freeze
-* Scalable throughput
-* Easy extension with new filters
-* Testable components
+* Reader (Thread – I/O bound)
 
-##  Project Structure
+  * Scans input directory
+  * Streams images without blocking CPU
+  * Feeds bounded queue
+
+* Processor (Process Pool – CPU bound)
+
+  * Runs enhancement algorithms
+  * Histogram matching
+  * Core image operations
+
+* **Writer (Thread – I/O bound)**
+
+  * Saves results
+  * Handles disk latency
+  * Keeps pipeline flowing
+
+This design prevents:
+
+* UI freeze
+* GIL bottlenecks
+* RAM explosion on millions of files
+
+---
+
+## 📁 Project Layout
 
 ```
 Staj/
-├── cli.py          # Headless CLI interface  
-├── gui.py          # Desktop UI  
-├── pipeline.py     # Orchestration layer  
-├── workers.py      # CPU processing workers  
-├── core.py         # Business logic  
-├── config.py       # Configuration  
-└── __main__.py     # Entry point
+├── cli.py        → Headless interface
+├── gui.py        → Desktop UI
+├── pipeline.py   → Orchestration & queues
+├── workers.py    → WriteTask + utilities
+├── core.py       → Image algorithms
+├── config.py     → Config management
+└── __main__.py   → Entry point
 ```
+
+---
 
 ##  Usage
 
@@ -48,13 +74,16 @@ Staj/
 python run_app.py
 ```
 
-### Headless / CLI Mode
+### Headless CLI Mode
 
 ```bash
-python -m Staj --input ./images --output ./result --workers 8
+python -m Staj \
+  --input ./images \
+  --output ./result \
+  --mode fast
 ```
 
-### Automation Example
+### Server / Automation
 
 ```bash
 python -m Staj \
@@ -64,43 +93,54 @@ python -m Staj \
   --headless
 ```
 
-##  Configuration
+---
 
-All behavior is controlled via `config.json`:
+## ⚙ Configuration
 
-* processing parameters
+All behavior is controlled via `config.json`
+
 * worker count
-* output format
+* enhancement parameters
 * logging level
-* pipeline steps
-
-##  Requirements
-
-See `requirements.txt`
-
-##  Design Goals
-
-* Process millions of images reliably
-* Keep UI responsive
-* Production-ready headless usage
-* Clean, maintainable architecture
-* Extensible processing steps
-* Safe crash recovery
-
-##  Technical Highlights
-
-* CPU / I-O separation
-* Queue based pipeline
-* Graceful shutdown
-* Progress reporting
-* Cross-platform support
+* retry rules
+* output format
 
 ---
 
-Target Use Cases
+##  Technical Highlights
 
-* Dataset preprocessing
-* Bulk image enhancement
-* Automation pipelines
+* Producer–Consumer with **bounded queues**
+* CPU/GIL aware design
+* Exception isolation per image
+* ETA based on real throughput
+* Single source of truth (`core.py`)
+* Cross-platform logging
+* Modular steps
+
+---
+
+##  Target Scenarios
+
+* Millions of image preprocessing
+* Dataset normalization
+* Research pipelines
+* Offline batch enhancement
+* Automated quality improvement
+
+---
+
+##  Requirements
+
+See `Staj/requirements.txt`
+
+---
+
+##  Notes
+
+* Designed for long-running jobs
+* Safe interruption supported
+* All components reusable from other projects
+* Same core used by GUI & CLI
+
 * Research workflows
 * Offline batch processing
