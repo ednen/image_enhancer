@@ -7,7 +7,6 @@ import cv2
 from pathlib import Path
 from threading import Thread
 from typing import Optional
-from .config import config
 from .pipeline import Pipeline, ProgressInfo
 from . import core
 
@@ -28,7 +27,7 @@ class EnhancerGUI:
         self.mode = tk.StringVar(value="auto")
         self.parallel_mode = tk.BooleanVar(value=True)
         self.skip_existing = tk.BooleanVar(value=True)
-        self.histogram_matching = tk.BooleanVar(value=True)
+        self.histogram_matching = tk.BooleanVar(value=False)  
         self.progress_var = tk.DoubleVar(value=0)
 
         self._init_enhancement_vars()
@@ -302,8 +301,8 @@ class EnhancerGUI:
         def run():
             count = self.pipeline.scan_files(
                 input_dir, 
-                self.skip_existing.get(), 
-                output_dir
+                output_dir,
+                self.skip_existing.get()
             )
             
             if count == 0:
@@ -316,10 +315,7 @@ class EnhancerGUI:
             mode = self.mode.get()
             params = self._get_manual_params() if mode == "manual" else None
             
-            if self.parallel_mode.get():
-                self.pipeline.run_parallel(input_dir, output_dir, mode, params)
-            else:
-                self.pipeline.run_sequential(input_dir, output_dir, mode, params)
+            self.pipeline.run(mode, params, parallel=self.parallel_mode.get())
         
         Thread(target=run, daemon=True).start()
     

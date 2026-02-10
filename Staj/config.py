@@ -1,4 +1,3 @@
-
 import json
 import logging
 from pathlib import Path
@@ -9,27 +8,27 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG: Dict[str, Any] = {
     'thresholds': {
         'haziness': 40,
-        'contrast_min': 50,
+        'contrast_min': 45,
         'brightness_low': 100,
         'brightness_high': 160,
         'sharpness': 1500,
         'saturation_min': 100,
         'color_deviation': 0.08,
-        'auto_levels_contrast': 45,
+        'auto_levels_contrast': 35,
         'detail_sharpness_min': 300,
         'detail_sharpness_max': 1500,
     },
     'multipliers': {
-        'dehaze_strength_max': 0.85,
-        'dehaze_strength_min': 0.25,
-        'dehaze_divisor': 180,
-        'clahe_clip_max': 4.0,
-        'clahe_clip_min': 1.5,
-        'gamma_min': 0.5,
-        'gamma_max': 1.5,
+        'dehaze_strength_max': 0.75,
+        'dehaze_strength_min': 0.20,
+        'dehaze_divisor': 200,
+        'clahe_clip_max': 2.5,
+        'clahe_clip_min': 1.2,
+        'gamma_min': 0.75,
+        'gamma_max': 1.4,
         'sharpen_strength_max': 2.5,
         'sharpen_strength_min': 0.5,
-        'saturation_cap': 1.10,
+        'saturation_cap': 1.08,
         'saturation_min_mult': 1.02,
     },
     'processing': {

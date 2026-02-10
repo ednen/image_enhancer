@@ -70,20 +70,20 @@ def calculate_auto_params(analysis: Dict[str, Any]) -> Dict[str, Any]:
     if color_deviation > th['color_deviation']:
         params['white_balance']['apply'] = True
 
-    if analysis['contrast'] < th['contrast_min'] or analysis['brightness'] < th['brightness_low']:
+    if analysis['contrast'] < 40 and analysis['brightness'] < 80:
         params['clahe']['apply'] = True
         params['clahe']['clip_limit'] = max(
-            mp['clahe_clip_min'], 
-            min(mp['clahe_clip_max'], mp['clahe_clip_max'] - (analysis['contrast'] / 25))
+            1.0, 
+            min(1.5, 1.5 - (analysis['contrast'] / 60))
         )
 
-    brightness_threshold = th['brightness_low'] + 20
+    brightness_threshold = 85  
     if analysis['brightness'] < brightness_threshold:
         params['gamma']['apply'] = True
-        params['gamma']['value'] = max(mp['gamma_min'], min(1.0, analysis['brightness'] / brightness_threshold))
-    elif analysis['brightness'] > th['brightness_high']:
+        params['gamma']['value'] = max(mp['gamma_min'], min(0.90, analysis['brightness'] / brightness_threshold))
+    elif analysis['brightness'] > th['brightness_high'] + 20:
         params['gamma']['apply'] = True
-        params['gamma']['value'] = min(mp['gamma_max'], 1.0 + (analysis['brightness'] - th['brightness_high']) / 150)
+        params['gamma']['value'] = min(mp['gamma_max'], 1.0 + (analysis['brightness'] - th['brightness_high']) / 200)
 
     if analysis['sharpness'] < th['sharpness']:
         params['sharpen']['strength'] = max(
@@ -94,13 +94,15 @@ def calculate_auto_params(analysis: Dict[str, Any]) -> Dict[str, Any]:
     if analysis['saturation'] < th['saturation_min']:
         params['color']['apply'] = True
         current_sat = max(analysis['saturation'], 20)
-        params['color']['saturation'] = min(mp['saturation_cap'], max(mp['saturation_min_mult'], 80 / current_sat * 0.70))
+        params['color']['saturation'] = min(mp['saturation_cap'], max(mp['saturation_min_mult'], 80 / current_sat * 0.65))
 
     if th['detail_sharpness_min'] < analysis['sharpness'] < th['detail_sharpness_max']:
         params['detail']['apply'] = True
 
-    if analysis['contrast'] < th['auto_levels_contrast']:
+    if analysis['contrast'] < 30:
         params['auto_levels']['apply'] = True
+        if params['clahe']['apply']:
+            params['clahe']['clip_limit'] = min(params['clahe']['clip_limit'], 1.2)
     
     return params
 
@@ -130,10 +132,11 @@ def enhance(img: np.ndarray, params: Dict[str, Any], analysis: Dict[str, Any]) -
         b_channel = np.clip(b_channel.astype(np.float32) - (b_mean - 128) * 0.3, 0, 255).astype(np.uint8)
 
     if params['auto_levels']['apply']:
-        min_val = np.percentile(l_channel, 1)
-        max_val = np.percentile(l_channel, 99)
+        min_val = np.percentile(l_channel, 2)
+        max_val = np.percentile(l_channel, 98)
         if max_val > min_val:
-            l_channel = np.clip((l_channel.astype(np.float32) - min_val) * 255.0 / (max_val - min_val), 0, 255).astype(np.uint8)
+            l_stretched = np.clip((l_channel.astype(np.float32) - min_val) * 255.0 / (max_val - min_val), 0, 255).astype(np.uint8)
+            l_channel = cv2.addWeighted(l_channel, 0.3, l_stretched, 0.7, 0)
 
     if params['clahe']['apply']:
         clahe = cv2.createCLAHE(clipLimit=params['clahe']['clip_limit'], tileGridSize=(8, 8))
@@ -163,9 +166,15 @@ def enhance(img: np.ndarray, params: Dict[str, Any], analysis: Dict[str, Any]) -
         result = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
 
     if params['denoise']['apply']:
-        result = cv2.medianBlur(result, 3)
-        result = cv2.bilateralFilter(result, 7, 50, 50)
-        result = cv2.fastNlMeansDenoisingColored(result, None, 5, 5, 7, 21)
+        h, w = result.shape[:2]
+        if h * w < 128 * 128:
+            result = cv2.bilateralFilter(result, 5, 30, 30)
+        elif h * w < 512 * 512:
+            result = cv2.bilateralFilter(result, 5, 40, 40)
+        else:
+            result = cv2.medianBlur(result, 3)
+            result = cv2.bilateralFilter(result, 7, 50, 50)
+            result = cv2.fastNlMeansDenoisingColored(result, None, 5, 5, 7, 21)
 
     if has_alpha and alpha is not None:
         result = cv2.merge([result[:, :, 0], result[:, :, 1], result[:, :, 2], alpha])

@@ -1,6 +1,5 @@
 import argparse
 import time
-import os
 import logging
 from pathlib import Path
 from .config import config
@@ -84,7 +83,7 @@ Guide:
   # Headless modu
   python -m Staj --input ./raw --output ./enhanced --headless
   
-  # Kişisel config ile çalıştırma
+  # Kişisel config ile calistirma
   python -m Staj -i ./raw -o ./enhanced --headless -c my_config.json
   
   # Default config oluştur
