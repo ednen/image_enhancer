@@ -176,7 +176,7 @@ python -m pytest Staj/tests/test_core.py::TestPerformance -v
 | TestQualityRegression | 3 | Quality metrics |
 | Total | 23 | All passing  |
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 Staj/
