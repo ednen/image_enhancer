@@ -44,7 +44,7 @@ psutil>=5.8.0
 
 For headless servers, use `opencv-python-headless` instead.
 
-## 💻 Usage
+##  Usage
 
 ### GUI Mode
 
