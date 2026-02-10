@@ -1,7 +1,3 @@
-"""
-Konfigürasyon Yönetimi
-Tüm magic number'lar burada tanımlı.
-"""
 
 import json
 import logging
@@ -10,7 +6,6 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-# ============== DEFAULT KONFİGÜRASYON ==============
 DEFAULT_CONFIG: Dict[str, Any] = {
     'thresholds': {
         'haziness': 40,
@@ -38,12 +33,13 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         'saturation_min_mult': 1.02,
     },
     'processing': {
-        'chunk_size_small': 5,      # Küçük - hızlı iptal
-        'chunk_size_medium': 10,    # Orta
-        'chunk_size_large': 20,     # Büyük
+        'chunk_size_small': 5,
+        'chunk_size_medium': 10,
+        'chunk_size_large': 20,
         'files_per_subdir': 10000,
-        'max_workers': None,  # None = cpu_count - 1
-        'write_buffer_limit': 50,  # Backpressure için
+        'skip_existing': True,
+        'max_workers': None,  
+        'write_buffer_limit': 50,  
         'histogram_samples': 50,
     },
     'adaptive_gamma': {
@@ -52,10 +48,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         'transition_width': 0.2,
     }
 }
-
-
 class Config:
-    """Singleton config manager"""
     _instance: Optional['Config'] = None
     _config: Dict[str, Any] = None
     
@@ -66,7 +59,6 @@ class Config:
         return cls._instance
     
     def load(self, config_path: Optional[str] = "config.json") -> 'Config':
-        """Config dosyasını yükle"""
         if config_path and Path(config_path).exists():
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
@@ -79,7 +71,6 @@ class Config:
         return self
     
     def _deep_merge(self, user_config: Dict[str, Any]) -> None:
-        """User config'i default'a merge et"""
         for key, value in user_config.items():
             if key in self._config and isinstance(value, dict):
                 self._config[key].update(value)
@@ -87,7 +78,6 @@ class Config:
                 self._config[key] = value
     
     def save(self, config_path: str = "config.json") -> None:
-        """Config'i dosyaya kaydet"""
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(self._config, f, indent=2, ensure_ascii=False)
         print(f"Config kaydedildi: {config_path}")
@@ -109,7 +99,6 @@ class Config:
         return self._config['adaptive_gamma']
     
     def get(self, key: str, default: Any = None) -> Any:
-        """Nested key erişimi: 'thresholds.haziness'"""
         keys = key.split('.')
         value = self._config
         for k in keys:
@@ -120,9 +109,6 @@ class Config:
         return value
     
     def to_dict(self) -> Dict[str, Any]:
-        """Tüm config'i dictionary olarak döndür"""
         return self._config.copy()
 
-
-# Global singleton instance
 config = Config()

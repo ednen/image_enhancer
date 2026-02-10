@@ -1,8 +1,3 @@
-"""
-Worker Utilities
-- WriteTask dataclass
-- Histogram hesaplama
-"""
 
 import logging
 from pathlib import Path
@@ -14,14 +9,16 @@ from . import core
 
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class WriteTask:
-    """Disk yazma görevi"""
-    path: Path
-    buffer: np.ndarray
+@dataclass 
+class ProcessResult:
+    success: bool
     filename: str
-    rel_path: str = ""
+    rel_path: str
+    error: Optional[str] = None
+    
+    @property
+    def message(self) -> str:
+        return self.error if self.error else "OK"
 
 
 def compute_reference_histogram(
@@ -29,10 +26,7 @@ def compute_reference_histogram(
     sample_files: List[Tuple],
     max_samples: int = 50
 ) -> Optional[np.ndarray]:
-    """
-    Referans histogram oluştur - ilk N dosyanın ortalaması
-    core.py fonksiyonlarını kullanır (TEK KAYNAK)
-    """
+
     input_path = Path(input_dir)
     histograms = []
     

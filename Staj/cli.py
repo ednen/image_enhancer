@@ -78,13 +78,13 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Guide:
-  # GUI ile çalıştır
+  # GUI modu
   python -m Staj
   
-  # Headless modunda çalıştır
+  # Headless modu
   python -m Staj --input ./raw --output ./enhanced --headless
   
-  # Kişisel config ile
+  # Kişisel config ile çalıştırma
   python -m Staj -i ./raw -o ./enhanced --headless -c my_config.json
   
   # Default config oluştur

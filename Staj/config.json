@@ -29,9 +29,7 @@
     "chunk_size_medium": 10,
     "chunk_size_large": 20,
     "files_per_subdir": 10000,
-    "max_workers": null,
-    "write_buffer_limit": 50,
-    "histogram_samples": 50
+    "skip_existing": true
   },
   "adaptive_gamma": {
     "dark_threshold": 0.4,

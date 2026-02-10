@@ -1,23 +1,14 @@
-# ===== Python =====
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# ===== Data =====
 Staj/Ham_Resimler/
 Staj/GML_Dosyalari/
-
-# ===== Build Outputs =====
 build/
 dist/
 *.spec
 *.exe
-
-# ===== IDE =====
 .vscode/
 .idea/
-
-# ===== Local =====
 .env
 .state

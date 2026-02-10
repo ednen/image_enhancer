@@ -1,7 +1,3 @@
-"""
-Tkinter GUI
-Sadece arayüz - tüm logic pipeline'da
-"""
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -11,27 +7,22 @@ import cv2
 from pathlib import Path
 from threading import Thread
 from typing import Optional
-
 from .config import config
 from .pipeline import Pipeline, ProgressInfo
 from . import core
 
-
 class EnhancerGUI:
-    """Görüntü İyileştirici GUI"""
     
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Görüntü İyileştirici Pro")
+        self.root.title("Image Enhancer")
         self.root.geometry("1200x800")
-        
-        # State
+
         self.pipeline: Optional[Pipeline] = None
         self.current_image: Optional[np.ndarray] = None
         self.preview_image: Optional[ImageTk.PhotoImage] = None
         self.is_processing = False
-        
-        # Variables
+
         self.input_dir = tk.StringVar(value="")
         self.output_dir = tk.StringVar(value="")
         self.mode = tk.StringVar(value="auto")
@@ -39,15 +30,12 @@ class EnhancerGUI:
         self.skip_existing = tk.BooleanVar(value=True)
         self.histogram_matching = tk.BooleanVar(value=True)
         self.progress_var = tk.DoubleVar(value=0)
-        
-        # Enhancement variables
+
         self._init_enhancement_vars()
-        
-        # UI
+
         self._create_ui()
     
     def _init_enhancement_vars(self) -> None:
-        """Enhancement değişkenlerini başlat"""
         self.var_dehaze = tk.BooleanVar(value=False)
         self.var_white_balance = tk.BooleanVar(value=False)
         self.var_clahe = tk.BooleanVar(value=True)
@@ -65,11 +53,9 @@ class EnhancerGUI:
         self.slider_saturation = tk.DoubleVar(value=1.0)
     
     def _create_ui(self) -> None:
-        """UI oluştur"""
         main_frame = ttk.Frame(self.root, padding="10")
         main_frame.pack(fill="both", expand=True)
-        
-        # Sol panel - kontroller
+
         left_panel = ttk.LabelFrame(main_frame, text="Kontroller", padding="10")
         left_panel.pack(side="left", fill="y", padx=(0, 10))
         
@@ -78,15 +64,13 @@ class EnhancerGUI:
         self._create_options_section(left_panel)
         self._create_buttons_section(left_panel)
         self._create_progress_section(left_panel)
-        
-        # Sağ panel - önizleme
+
         right_panel = ttk.LabelFrame(main_frame, text="Önizleme", padding="10")
         right_panel.pack(side="right", fill="both", expand=True)
         
         self._create_preview_section(right_panel)
     
     def _create_directory_section(self, parent: ttk.Frame) -> None:
-        """Klasör seçimi"""
         ttk.Label(parent, text="Giriş Klasörü:").grid(row=0, column=0, sticky="w")
         ttk.Entry(parent, textvariable=self.input_dir, width=30).grid(row=0, column=1, padx=5)
         ttk.Button(parent, text="...", width=3, command=self._select_input_dir).grid(row=0, column=2)
@@ -96,7 +80,6 @@ class EnhancerGUI:
         ttk.Button(parent, text="...", width=3, command=self._select_output_dir).grid(row=1, column=2, pady=(5, 0))
     
     def _create_mode_section(self, parent: ttk.Frame) -> None:
-        """Mod seçimi"""
         mode_frame = ttk.LabelFrame(parent, text="Mod", padding="5")
         mode_frame.grid(row=2, column=0, columnspan=3, sticky="ew", pady=10)
         
@@ -106,18 +89,16 @@ class EnhancerGUI:
                        command=self._on_mode_change).pack(side="left", padx=10)
     
     def _create_options_section(self, parent: ttk.Frame) -> None:
-        """Seçenekler"""
         options_frame = ttk.LabelFrame(parent, text="Seçenekler", padding="5")
         options_frame.grid(row=3, column=0, columnspan=3, sticky="ew", pady=5)
         
         ttk.Checkbutton(options_frame, text="Paralel İşleme (Hızlı)", 
                        variable=self.parallel_mode).pack(anchor="w")
-        ttk.Checkbutton(options_frame, text="Kaldığı Yerden Devam (State)", 
+        ttk.Checkbutton(options_frame, text="Var Olanları Atla (Resume)", 
                        variable=self.skip_existing).pack(anchor="w")
         ttk.Checkbutton(options_frame, text="Histogram Eşitleme (Tutarlı Renkler)", 
                        variable=self.histogram_matching).pack(anchor="w")
-        
-        # Manuel mod kontrolleri
+
         self.manual_frame = ttk.LabelFrame(parent, text="Manuel Ayarlar", padding="5")
         self.manual_frame.grid(row=4, column=0, columnspan=3, sticky="ew", pady=5)
         
@@ -125,7 +106,6 @@ class EnhancerGUI:
         self._update_manual_visibility()
     
     def _create_manual_controls(self, parent: ttk.Frame) -> None:
-        """Manuel mod kontrolleri"""
         controls = [
             ("Dehaze", self.var_dehaze, self.slider_dehaze, 0.0, 1.0),
             ("CLAHE", self.var_clahe, self.slider_clahe, 1.0, 4.0),
@@ -140,8 +120,7 @@ class EnhancerGUI:
             ttk.Scale(parent, from_=min_val, to=max_val, variable=slider, orient="horizontal",
                      command=lambda _: self._on_param_change()).grid(row=i, column=1, sticky="ew", padx=5)
             ttk.Label(parent, textvariable=slider, width=5).grid(row=i, column=2)
-        
-        # Diğer checkbox'lar
+
         other_frame = ttk.Frame(parent)
         other_frame.grid(row=len(controls), column=0, columnspan=3, sticky="w", pady=5)
         
@@ -153,7 +132,6 @@ class EnhancerGUI:
                        command=self._on_param_change).pack(side="left")
     
     def _create_buttons_section(self, parent: ttk.Frame) -> None:
-        """Butonlar"""
         ttk.Button(parent, text="Önizleme Yükle", 
                   command=self._load_preview).grid(row=5, column=0, columnspan=3, sticky="ew", pady=5)
         
@@ -167,13 +145,9 @@ class EnhancerGUI:
         self.cancel_btn.pack(side="left", expand=True, fill="x", padx=(0, 2))
         
         self.resume_btn = ttk.Button(btn_frame, text="Devam Et", command=self._resume, state="disabled")
-        self.resume_btn.pack(side="left", expand=True, fill="x", padx=(2, 2))
-        
-        self.restart_btn = ttk.Button(btn_frame, text="Baştan", command=self._restart, state="disabled")
-        self.restart_btn.pack(side="left", expand=True, fill="x", padx=(2, 0))
+        self.resume_btn.pack(side="left", expand=True, fill="x", padx=(2, 0))
     
     def _create_progress_section(self, parent: ttk.Frame) -> None:
-        """İlerleme çubuğu"""
         progress_frame = ttk.Frame(parent)
         progress_frame.grid(row=8, column=0, columnspan=3, sticky="ew", pady=10)
         
@@ -187,47 +161,39 @@ class EnhancerGUI:
         self.percent_label.pack()
     
     def _create_preview_section(self, parent: ttk.Frame) -> None:
-        """Önizleme alanı"""
         preview_frame = ttk.Frame(parent)
         preview_frame.pack(fill="both", expand=True)
-        
-        # Original
+
         orig_frame = ttk.LabelFrame(preview_frame, text="Orijinal")
         orig_frame.pack(side="left", fill="both", expand=True, padx=(0, 5))
         
         self.original_label = ttk.Label(orig_frame)
         self.original_label.pack(fill="both", expand=True)
-        
-        # Enhanced
+
         enh_frame = ttk.LabelFrame(preview_frame, text="İyileştirilmiş")
         enh_frame.pack(side="right", fill="both", expand=True, padx=(5, 0))
         
         self.enhanced_label = ttk.Label(enh_frame)
         self.enhanced_label.pack(fill="both", expand=True)
-    
-    # ============== EVENT HANDLERS ==============
+
     
     def _select_input_dir(self) -> None:
-        """Giriş klasörü seç"""
         path = filedialog.askdirectory(title="Giriş Klasörü Seç")
         if path:
             self.input_dir.set(path)
             self._load_first_preview(path)
     
     def _select_output_dir(self) -> None:
-        """Çıkış klasörü seç"""
         path = filedialog.askdirectory(title="Çıkış Klasörü Seç")
         if path:
             self.output_dir.set(path)
     
     def _load_first_preview(self, directory: str) -> None:
-        """İlk PNG'yi önizlemeye yükle"""
         first_png = self._find_first_png(Path(directory))
         if first_png:
             self._load_image(first_png)
     
     def _find_first_png(self, directory: Path) -> Optional[Path]:
-        """Recursive ilk PNG bul"""
         try:
             for entry in sorted(directory.iterdir()):
                 if entry.is_file() and entry.name.lower().endswith('.png'):
@@ -241,7 +207,6 @@ class EnhancerGUI:
         return None
     
     def _load_preview(self) -> None:
-        """Dosya seç ve önizleme yükle"""
         path = filedialog.askopenfilename(
             title="Görüntü Seç",
             filetypes=[("PNG files", "*.png"), ("All files", "*.*")]
@@ -250,26 +215,22 @@ class EnhancerGUI:
             self._load_image(Path(path))
     
     def _load_image(self, path: Path) -> None:
-        """Görüntüyü yükle ve göster"""
         img = core.read_image(path)
         if img is None:
-            messagebox.showerror("Hata", "Görüntü yüklenemedi!")
+            messagebox.showerror("Hata", "Görüntü yüklenemedi")
             return
         
         self.current_image = img
         self._update_preview()
     
     def _update_preview(self) -> None:
-        """Önizlemeyi güncelle"""
         if self.current_image is None:
             return
-        
-        # Orijinal
+
         orig_display = self._prepare_display(self.current_image)
         self.original_label.configure(image=orig_display)
         self.original_label.image = orig_display
-        
-        # Enhanced
+
         params = self._get_manual_params()
         analysis = core.analyze(self.current_image)
         
@@ -282,7 +243,6 @@ class EnhancerGUI:
         self.enhanced_label.image = enh_display
     
     def _prepare_display(self, img: np.ndarray, max_size: int = 400) -> ImageTk.PhotoImage:
-        """Görüntüyü görüntülemeye hazırla"""
         if len(img.shape) > 2 and img.shape[2] == 4:
             display = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
         else:
@@ -298,23 +258,19 @@ class EnhancerGUI:
         return ImageTk.PhotoImage(pil_img)
     
     def _on_mode_change(self) -> None:
-        """Mod değiştiğinde"""
         self._update_manual_visibility()
         self._update_preview()
     
     def _update_manual_visibility(self) -> None:
-        """Manuel kontrollerin görünürlüğü"""
         if self.mode.get() == "manual":
             self.manual_frame.grid()
         else:
             self.manual_frame.grid_remove()
     
     def _on_param_change(self) -> None:
-        """Parametre değiştiğinde önizlemeyi güncelle"""
         self._update_preview()
     
     def _get_manual_params(self) -> dict:
-        """Manuel parametreleri al"""
         return {
             'dehaze': {'apply': self.var_dehaze.get(), 'strength': self.slider_dehaze.get()},
             'white_balance': {'apply': self.var_white_balance.get()},
@@ -326,127 +282,70 @@ class EnhancerGUI:
             'auto_levels': {'apply': self.var_auto_levels.get()},
             'denoise': {'apply': self.var_denoise.get()}
         }
-    
-    # ============== PROCESSING ==============
-    
+
     def _process_all(self) -> None:
-        """Tüm dosyaları işle"""
         input_dir = self.input_dir.get()
         output_dir = self.output_dir.get()
         
         if not input_dir or not output_dir:
-            messagebox.showwarning("Uyarı", "Lütfen giriş ve çıkış klasörlerini seçin!")
+            messagebox.showwarning("Uyarı", "Lütfen giriş ve çıkış klasörlerini seçin")
             return
         
         self.is_processing = True
         self.process_btn.configure(state="disabled")
         self.cancel_btn.configure(state="normal")
-        
-        # Pipeline oluştur
+
         self.pipeline = Pipeline()
         self.pipeline.on_progress = self._on_progress
         self.pipeline.on_complete = self._on_complete
         
-        # Thread'de çalıştır
         def run():
-            # Dosyaları tara (state tracking - checkbox'a göre)
-            use_state = self.skip_existing.get()
-            count = self.pipeline.scan_files(input_dir, output_dir, use_state=use_state)
+            count = self.pipeline.scan_files(
+                input_dir, 
+                self.skip_existing.get(), 
+                output_dir
+            )
             
             if count == 0:
-                self.root.after(0, lambda: messagebox.showinfo("Bilgi", "İşlenecek dosya yok!"))
+                self.root.after(0, lambda: messagebox.showinfo("Bilgi", "İşlenecek dosya yok"))
                 self.root.after(0, self._reset_ui)
                 return
-            
-            # Histogram hazırla
+
             self.pipeline.prepare_histogram(input_dir, self.histogram_matching.get())
-            
-            # İşle
+
             mode = self.mode.get()
             params = self._get_manual_params() if mode == "manual" else None
             
-            self.pipeline.run(mode, params, parallel=self.parallel_mode.get())
+            if self.parallel_mode.get():
+                self.pipeline.run_parallel(input_dir, output_dir, mode, params)
+            else:
+                self.pipeline.run_sequential(input_dir, output_dir, mode, params)
         
-        self._processing_thread = Thread(target=run, daemon=True)
-        self._processing_thread.start()
+        Thread(target=run, daemon=True).start()
     
     def _cancel(self) -> None:
-        """İşlemi iptal et - HEMEN durdur"""
         if self.pipeline:
             self.pipeline.cancel()
-        
         self.cancel_btn.configure(state="disabled")
-        self.progress_label.configure(text="Durduruluyor...")
-        
-        # Thread'in bitmesini bekle (max 5 saniye)
-        def wait_and_enable():
-            if hasattr(self, '_processing_thread') and self._processing_thread:
-                self._processing_thread.join(timeout=5.0)
-            
-            # UI'ı güncelle
-            self.root.after(0, lambda: self._on_cancel_complete())
-        
-        Thread(target=wait_and_enable, daemon=True).start()
-    
-    def _on_cancel_complete(self) -> None:
-        """İptal tamamlandığında"""
-        self.is_processing = False
-        self.process_btn.configure(state="normal")
         self.resume_btn.configure(state="normal")
-        self.restart_btn.configure(state="normal")
-        
-        # Kaç dosya işlendiğini göster
-        processed = self.pipeline.state.count if self.pipeline and self.pipeline.state else 0
-        self.progress_label.configure(text=f"Durduruldu ({processed} dosya işlendi) - 'Devam Et' veya 'Baştan' seçin")
     
     def _resume(self) -> None:
-        """İşleme devam et - kaldığı yerden (state'den)"""
-        if self.is_processing:
-            return
-        
-        self.resume_btn.configure(state="disabled")
-        self.restart_btn.configure(state="disabled")
-        self._process_all()
-    
-    def _restart(self) -> None:
-        """Baştan başla - state'i temizle"""
-        if self.is_processing:
-            return
-        
-        output_dir = self.output_dir.get()
-        if not output_dir:
-            messagebox.showwarning("Uyarı", "Çıkış klasörü seçilmedi!")
-            return
-        
-        # State dosyasını sil
-        from .pipeline import ProcessingState
-        state = ProcessingState(output_dir)
-        state.clear()
-        
-        self.resume_btn.configure(state="disabled")
-        self.restart_btn.configure(state="disabled")
-        self.progress_label.configure(text="State temizlendi, baştan başlanıyor...")
-        
-        # İşlemeyi başlat
         self._process_all()
     
     def _on_progress(self, info: ProgressInfo) -> None:
-        """İlerleme callback"""
         def update():
             percent = (info.current / info.total) * 100 if info.total > 0 else 0
             self.progress_var.set(percent)
             self.percent_label.configure(text=f"{percent:.1f}%")
             
             eta_str = f"{info.eta:.0f}sn" if info.eta < 60 else f"{info.eta/60:.1f}dk"
-            pending = f" | Yazılıyor: {info.pending_writes}" if info.pending_writes > 0 else ""
             self.progress_label.configure(
-                text=f"{info.current}/{info.total} | Hız: {info.speed:.1f}/sn | ETA: {eta_str}{pending}"
+                text=f"{info.current}/{info.total} - {info.filename} | Hız: {info.speed:.1f}/sn | ETA: {eta_str}"
             )
         
         self.root.after(0, update)
     
     def _on_complete(self, processed: int, errors: int, error_list: list) -> None:
-        """Tamamlanma callback"""
         def update():
             self._reset_ui()
             
@@ -454,24 +353,21 @@ class EnhancerGUI:
                 msg = f"{processed} dosya işlendi, {errors} hata oluştu."
                 messagebox.showwarning("Tamamlandı", msg)
             else:
-                messagebox.showinfo("Tamamlandı", f"{processed} dosya başarıyla işlendi!")
+                messagebox.showinfo("Tamamlandı", f"{processed} dosya başarıyla işlendi")
         
         self.root.after(0, update)
     
     def _reset_ui(self) -> None:
-        """UI'ı sıfırla"""
         self.is_processing = False
         self.process_btn.configure(state="normal")
         self.cancel_btn.configure(state="disabled")
         self.resume_btn.configure(state="disabled")
-        self.restart_btn.configure(state="disabled")
         self.progress_var.set(0)
         self.progress_label.configure(text="Hazır")
         self.percent_label.configure(text="0%")
 
 
 def run_gui() -> None:
-    """GUI'yi başlat"""
     root = tk.Tk()
     app = EnhancerGUI(root)
     root.mainloop()
