@@ -8,7 +8,11 @@ import numpy as np
 from . import core
 
 logger = logging.getLogger(__name__)
-
+class WriteTask:
+    path: Path
+    buffer: bytes
+    filename: str
+    rel_path: str
 @dataclass 
 class ProcessResult:
     success: bool
